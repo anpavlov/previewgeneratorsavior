@@ -25,6 +25,7 @@ declare(strict_types=1);
 namespace OCA\PreviewGenerator\AppInfo;
 
 use OCA\PreviewGenerator\Listeners\PostWriteListener;
+use OCA\PreviewGenerator\Middleware\PreviewMiddleware;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
@@ -40,6 +41,11 @@ class Application extends App implements IBootstrap {
 
 	public function register(IRegistrationContext $context): void {
 		$context->registerEventListener(NodeWrittenEvent::class, PostWriteListener::class);
+        $container = \OC::$server->query(\OC\Core\Application::class)->getContainer();
+        $container->registerService(PreviewMiddleware::class, function($c){
+			return new PreviewMiddleware($c->query('IDBConnection'));
+		});
+        $container->registerMiddleware(PreviewMiddleware::class);
 	}
 
 	public function boot(IBootContext $context): void {
